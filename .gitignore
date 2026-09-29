@@ -1,0 +1,26 @@
+# secrets - never commit
+.env
+
+# python
+__pycache__/
+*.pyc
+
+# virtual environment
+venv/
+
+# vector database (large, regeneratable via ingest.py)
+chroma_db/
+
+# walkthrough notes adapted from IGN / PowerPyx guides: not ours to publish
+data/uncharted4_ch*.txt
+data/uncharted4_collectibles.txt
+
+# background images are screenshots from the game (Sony / Naughty Dog)
+static/images/
+
+# files Claude saved into this folder while we worked
+Claude outputs/
+
+# OS clutter
+.DS_Store
+Thumbs.db

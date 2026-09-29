@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Field Companion — Uncharted 4: A Thief's End</title>
+  <meta name="description" content="Ask about puzzles, treasures and characters in Uncharted 4: A Thief's End. Answers come straight from the walkthrough notes.">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M18 18L82 82M82 18L18 82' stroke='%23C2320F' stroke-width='16' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Lets the CSS know JavaScript is running (used for the scroll-reveal effect). -->
+  <script>document.documentElement.classList.add("js");</script>
+
+  <!-- Fonts: a big editorial serif, a clean sans for reading, a mono for labels. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+
+  <!-- Tailwind CSS (browser build, pinned version). Fine for localhost; before
+       deploying we'll swap this for a pre-built CSS file. -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
+
+  <style type="text/tailwindcss">
+    /* The whole palette: one paper tone, one ink tone, one sharp accent. */
+    @theme {
+      --color-paper: #EFE9DD;
+      --color-ink: #16130F;
+      --color-accent: #C2320F;
+      --color-accent-light: #FF8A5B; /* same red, lighter: for use on the dark photos */
+
+      --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+      --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    }
+
+    @layer base {
+      html { scroll-behavior: smooth; }
+      body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+      ::selection { background: var(--color-accent); color: var(--color-paper); }
+      :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+    }
+
+    /* Scroll reveal: elements fade up as they enter the screen. */
+    .js [data-reveal] {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+      transition-delay: var(--delay, 0ms);
+    }
+    .js [data-reveal].is-visible { opacity: 1; transform: none; }
+
+    /* The red X draws itself on load: "X marks the spot". */
+    .js .x-mark path { stroke-dasharray: 130; stroke-dashoffset: 130; }
+    .js .is-visible .x-mark path { animation: draw 0.6s cubic-bezier(0.6, 0, 0.2, 1) 0.35s forwards; }
+    .js .is-visible .x-mark path + path { animation-delay: 0.8s; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+
+    /* Thin accent line that sweeps while the companion is thinking. */
+    .scan { animation: scan 1.4s cubic-bezier(0.6, 0, 0.4, 1) infinite; }
+    @keyframes scan { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+    /* New chat entries slide in gently. */
+    .entry-in { animation: entry-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); }
+    @keyframes entry-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    /* Typography for the companion's answers (rendered from Markdown). */
+    .answer { font-size: 15px; line-height: 1.7; color: color-mix(in oklab, var(--color-paper) 88%, transparent); }
+    .answer > * + * { margin-top: 0.85em; }
+    .answer strong { color: var(--color-paper); font-weight: 600; }
+    .answer em { font-style: italic; }
+    .answer h4 { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.15; color: var(--color-paper); }
+    .answer ul, .answer ol { padding-left: 1.4rem; }
+    .answer li + li { margin-top: 0.4em; }
+    .answer ol { list-style: decimal; }
+    .answer ol li::marker { color: var(--color-accent); font-family: var(--font-mono); font-size: 0.85em; }
+    .answer ul { list-style: none; }
+    .answer ul li { position: relative; }
+    .answer ul li::before { content: "—"; position: absolute; left: -1.4rem; color: var(--color-accent); }
+    .answer code { font-family: var(--font-mono); font-size: 0.88em; padding: 0.1em 0.35em; background: color-mix(in oklab, var(--color-paper) 10%, transparent); }
+
+    .chat-log { scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--color-paper) 25%, transparent) transparent; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .js [data-reveal] { opacity: 1; transform: none; transition: none; }
+      .js .x-mark path, .js .is-visible .x-mark path { animation: none; stroke-dashoffset: 0; }
+      .entry-in, .scan { animation: none; }
+    }
+  </style>
+</head>
+
+<body class="min-h-svh">
+  <a href="#ask" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-ink focus:text-paper focus:px-4 focus:py-2 font-mono text-xs">Skip to the companion</a>
+
+  <!-- ───────────── Top bar ───────────── -->
+  <header class="absolute inset-x-0 top-0 z-20 border-b border-paper/15 text-paper">
+    <div class="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12 h-14 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.18em]">
+      <p><span class="text-accent-light" aria-hidden="true">●</span> Field Companion <span class="text-paper/90">/ Vol. IV</span></p>
+      <p class="hidden md:block text-paper/90">Uncharted 4 · A Thief's End</p>
+      <a href="#journal" class="hover:text-accent-light transition-colors">Contents</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ───────────── Hero + chat ───────────── -->
+    <section class="relative isolate overflow-hidden bg-ink text-paper">
+      <!-- Background photo, darkened so the text on top stays readable
+           (overlay strengths were chosen by measuring contrast against this image). -->
+      <img src="images/skull-mountain.jpg" alt="" aria-hidden="true" fetchpriority="high"
+        class="absolute inset-0 -z-10 size-full object-cover object-[62%_30%] lg:object-[50%_35%] saturate-[.85]">
+      <div aria-hidden="true" class="absolute inset-0 -z-10 bg-ink/72 lg:bg-ink/62"></div>
+      <div aria-hidden="true" class="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,transparent,rgb(22_19_15/0.15))] lg:bg-[linear-gradient(to_right,rgb(22_19_15/0.85),transparent_75%)]"></div>
+
+      <div class="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12 pt-24 sm:pt-28 lg:pt-32 pb-20 sm:pb-28 grid gap-14 lg:grid-cols-12 lg:gap-x-10">
+
+      <div class="lg:col-span-5 flex flex-col">
+        <p data-reveal class="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.2em] text-paper/90"><span class="h-px w-8 bg-accent-light" aria-hidden="true"></span>No. 04 — A walkthrough that talks back</p>
+
+        <h1 class="mt-6 font-display font-normal leading-[0.88] tracking-[-0.02em] text-[clamp(3.4rem,13vw,6rem)] lg:text-[clamp(4.5rem,7.2vw,7.25rem)]">
+          <span data-reveal class="block" style="--delay: 80ms">Every ruin</span>
+          <span data-reveal class="block pl-[16%]" style="--delay: 160ms">has a way</span>
+          <span data-reveal class="block italic" style="--delay: 240ms">through<span class="text-accent-light not-italic">.</span></span>
+        </h1>
+
+        <p data-reveal style="--delay: 320ms" class="mt-8 max-w-[38ch] text-[17px] leading-relaxed text-paper/90">
+          Stuck on a puzzle, hunting a treasure, or lost in who's who? Ask in plain words.
+          Every answer comes from the walkthrough notes, and when the notes don't cover it,
+          the companion says so instead of guessing.
+        </p>
+
+        <div data-reveal style="--delay: 400ms" class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+          <a href="#ask" data-focus-chat class="group inline-flex items-center gap-3 bg-paper text-ink px-6 py-3.5 text-[15px] font-medium hover:bg-accent hover:text-paper transition-colors duration-300">
+            Ask the companion
+            <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </a>
+          <a href="#journal" class="font-mono text-[11px] uppercase tracking-[0.18em] border-b border-paper/40 pb-1 hover:text-accent-light hover:border-accent-light transition-colors">See what it knows ↓</a>
+        </div>
+
+        <dl data-reveal style="--delay: 480ms" class="mt-14 lg:mt-auto lg:pt-14 grid grid-cols-3 border-t border-paper/20">
+          <div class="pt-4 pr-3">
+            <dt class="font-mono text-[10px] uppercase tracking-[0.16em] text-paper/90">Chapters</dt>
+            <dd class="mt-1 font-display text-3xl sm:text-4xl">0–10</dd>
+          </div>
+          <div class="pt-4 px-3 border-l border-paper/20">
+            <dt class="font-mono text-[10px] uppercase tracking-[0.16em] text-paper/90">Puzzles</dt>
+            <dd class="mt-1 font-display text-3xl sm:text-4xl italic">Solved</dd>
+          </div>
+          <div class="pt-4 pl-3 border-l border-paper/20">
+            <dt class="font-mono text-[10px] uppercase tracking-[0.16em] text-paper/90">Treasures</dt>
+            <dd class="mt-1 font-display text-3xl sm:text-4xl italic">Mapped</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- The chat panel: pushed down and overlapped by the X for an off-balance composition. -->
+      <section id="ask" data-reveal style="--delay: 200ms" aria-labelledby="ask-title" class="relative lg:col-span-7 lg:mt-20 scroll-mt-6">
+        <svg class="x-mark pointer-events-none absolute z-10 -top-7 -left-2 size-14 sm:-top-10 sm:-left-8 sm:size-20 text-accent-light" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <path d="M16 18 C 36 38, 58 60, 86 84" stroke="currentColor" stroke-width="9" stroke-linecap="round"/>
+          <path d="M82 14 C 62 38, 42 60, 18 88" stroke="currentColor" stroke-width="9" stroke-linecap="round"/>
+        </svg>
+
+        <div class="bg-ink/85 backdrop-blur-md ring-1 ring-paper/10 text-paper flex flex-col h-[78svh] min-h-[520px] lg:h-[min(760px,calc(100svh_-_14rem))]">
+          <div class="flex items-center justify-between gap-4 px-5 sm:px-7 h-14 shrink-0 border-b border-paper/15 font-mono text-[11px] uppercase tracking-[0.18em]">
+            <h2 id="ask-title" class="pl-8 sm:pl-6">Ask the journal</h2>
+            <div class="flex items-center gap-5">
+              <p class="flex items-center gap-2 text-paper/70" aria-live="polite">
+                <span id="status-dot" class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+                <span id="status-text" class="sr-only sm:not-sr-only">Ready</span>
+              </p>
+              <button id="clear" type="button" hidden class="uppercase tracking-[0.18em] text-paper/70 hover:text-accent transition-colors">Clear</button>
+            </div>
+          </div>
+
+          <div id="log" role="log" aria-label="Conversation" class="chat-log relative flex-1 overflow-y-auto overscroll-contain px-5 sm:px-7 py-7 space-y-9">
+            <div id="empty">
+              <p class="font-display italic text-[2.6rem] sm:text-5xl leading-[0.95]">What are you<br>stuck on?</p>
+              <ul class="mt-8 border-t border-paper/15" aria-label="Example questions">
+                <li><button type="button" data-ask="Who is Nathan's mentor?" class="group w-full flex items-baseline gap-4 py-3.5 border-b border-paper/15 text-left">
+                  <span class="font-mono text-[11px] text-paper/60">01</span>
+                  <span class="flex-1 text-paper/85 group-hover:text-paper transition-colors">Who is Nathan's mentor?</span>
+                  <span aria-hidden="true" class="text-accent transition-transform duration-300 group-hover:translate-x-1.5">→</span>
+                </button></li>
+                <li><button type="button" data-ask="How do I solve the zodiac puzzle?" class="group w-full flex items-baseline gap-4 py-3.5 border-b border-paper/15 text-left">
+                  <span class="font-mono text-[11px] text-paper/60">02</span>
+                  <span class="flex-1 text-paper/85 group-hover:text-paper transition-colors">How do I solve the zodiac puzzle?</span>
+                  <span aria-hidden="true" class="text-accent transition-transform duration-300 group-hover:translate-x-1.5">→</span>
+                </button></li>
+                <li><button type="button" data-ask="Where is the Strange Pendant treasure?" class="group w-full flex items-baseline gap-4 py-3.5 border-b border-paper/15 text-left">
+                  <span class="font-mono text-[11px] text-paper/60">03</span>
+                  <span class="flex-1 text-paper/85 group-hover:text-paper transition-colors">Where is the Strange Pendant treasure?</span>
+                  <span aria-hidden="true" class="text-accent transition-transform duration-300 group-hover:translate-x-1.5">→</span>
+                </button></li>
+                <li><button type="button" data-ask="How do I do the light puzzle in Henry Avery's tomb?" class="group w-full flex items-baseline gap-4 py-3.5 border-b border-paper/15 text-left">
+                  <span class="font-mono text-[11px] text-paper/60">04</span>
+                  <span class="flex-1 text-paper/85 group-hover:text-paper transition-colors">How do I do the light puzzle in Henry Avery's tomb?</span>
+                  <span aria-hidden="true" class="text-accent transition-transform duration-300 group-hover:translate-x-1.5">→</span>
+                </button></li>
+              </ul>
+            </div>
+          </div>
+
+          <form id="ask-form" class="shrink-0 border-t border-paper/15 p-3 sm:p-4">
+            <label for="question" class="sr-only">Your question</label>
+            <div class="flex items-end gap-3 bg-paper/[0.06] px-4 py-3 ring-1 ring-transparent focus-within:ring-accent transition">
+              <textarea id="question" name="question" rows="1" maxlength="500" required
+                placeholder="Ask about a puzzle or treasure…"
+                class="flex-1 resize-none bg-transparent outline-none focus-visible:outline-none text-[15px] leading-6 max-h-40 placeholder:text-paper/55"></textarea>
+              <button id="send" type="submit" aria-label="Send question"
+                class="shrink-0 size-10 grid place-items-center bg-accent text-paper hover:bg-paper hover:text-ink transition-colors duration-300 disabled:opacity-40 disabled:pointer-events-none">
+                <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+            <p class="hidden sm:block mt-2 px-1 font-mono text-[10px] uppercase tracking-[0.16em] text-paper/60">Enter to send · Shift + Enter for a new line</p>
+          </form>
+        </div>
+      </section>
+      </div>
+    </section>
+
+    <!-- ───────────── How it answers ───────────── -->
+    <section aria-labelledby="how-title" class="relative isolate overflow-hidden bg-ink text-paper">
+      <img src="images/ruined-well.jpg" alt="" aria-hidden="true" loading="lazy"
+        class="absolute inset-0 -z-10 size-full object-cover saturate-[.85]">
+      <div aria-hidden="true" class="absolute inset-0 -z-10 bg-ink/72"></div>
+      <div class="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12 py-20 sm:py-28 grid gap-14 lg:grid-cols-12 lg:gap-x-10">
+        <div data-reveal class="lg:col-span-4">
+          <p class="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.2em] text-paper/90"><span class="h-px w-8 bg-accent-light" aria-hidden="true"></span>How it answers</p>
+          <h2 id="how-title" class="mt-5 font-display text-5xl sm:text-6xl leading-[0.95] tracking-[-0.01em]">Nothing is made up. <em>Everything is looked up.</em></h2>
+        </div>
+
+        <ol class="lg:col-span-7 lg:col-start-6 grid gap-12 sm:grid-cols-3 sm:gap-8">
+          <li data-reveal class="border-t border-paper/40 pt-5">
+            <span class="font-display text-7xl leading-none text-accent-light">01</span>
+            <h3 class="mt-7 text-lg font-medium">Search</h3>
+            <p class="mt-2 text-[15px] leading-relaxed text-paper/90">Your question is matched against the walkthrough notes by meaning, not by exact words.</p>
+          </li>
+          <li data-reveal style="--delay: 120ms" class="border-t border-paper/40 pt-5 sm:mt-16">
+            <span class="font-display text-7xl leading-none text-accent-light">02</span>
+            <h3 class="mt-7 text-lg font-medium">Re-rank</h3>
+            <p class="mt-2 text-[15px] leading-relaxed text-paper/90">The twenty closest notes are read side by side with your question, and only the best few are kept.</p>
+          </li>
+          <li data-reveal style="--delay: 240ms" class="border-t border-paper/40 pt-5 sm:mt-32">
+            <span class="font-display text-7xl leading-none text-accent-light">03</span>
+            <h3 class="mt-7 text-lg font-medium">Answer</h3>
+            <p class="mt-2 text-[15px] leading-relaxed text-paper/90">An AI model writes the reply from those notes alone, and if one provider is busy, the next takes over. If the notes don't cover it, you'll be told, not given a guess.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ───────────── Contents ───────────── -->
+    <section id="journal" aria-labelledby="journal-title" class="border-t border-ink/15 scroll-mt-4">
+      <div class="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12 py-20 sm:py-28 grid gap-12 lg:grid-cols-12 lg:gap-x-10">
+        <div data-reveal class="lg:col-span-4 lg:sticky lg:top-10 self-start">
+          <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Contents</p>
+          <h2 id="journal-title" class="mt-5 font-display text-5xl sm:text-6xl leading-[0.95] tracking-[-0.01em]">What's in <em>the journal</em></h2>
+          <p class="mt-6 max-w-[36ch] text-[15px] leading-relaxed text-ink/70">Pick a chapter to start a walkthrough question. Chapters 11 onward haven't been written into the journal yet.</p>
+        </div>
+
+        <ol class="lg:col-span-8 border-t border-ink" id="chapters">
+          <!-- Filled in from the list in app.js, so the chapter names live in one place. -->
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <!-- ───────────── Footer ───────────── -->
+  <footer class="relative isolate overflow-hidden bg-ink text-paper">
+    <img src="images/libertalia.jpg" alt="" aria-hidden="true" loading="lazy"
+      class="absolute inset-0 -z-10 size-full object-cover saturate-[.85]">
+    <div aria-hidden="true" class="absolute inset-0 -z-10 bg-ink/72"></div>
+    <div class="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12 py-16 sm:py-24 grid gap-10 lg:grid-cols-12 lg:gap-x-10 items-end">
+      <p data-reveal class="lg:col-span-8 font-display italic leading-[0.85] tracking-[-0.02em] text-[clamp(3.2rem,11vw,9rem)]">Sic parvis magna<span class="text-accent-light not-italic">.</span></p>
+      <div class="lg:col-span-4 space-y-3 font-mono text-[11px] uppercase tracking-[0.16em] text-paper/90">
+        <p>“Greatness from small beginnings.”</p>
+        <p>A fan-made study project. Not affiliated with Naughty Dog or Sony Interactive Entertainment.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

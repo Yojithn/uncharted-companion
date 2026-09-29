@@ -1,0 +1,6 @@
+# Everything this project needs. Install with:  pip install -r requirements.txt
+chromadb
+sentence-transformers
+flask
+python-dotenv
+openai
