@@ -46,7 +46,7 @@ few minutes. Each answer on the page shows which provider wrote it.
 ## Run it locally
 
 ```bash
-git clone https://github.com/<your-username>/uncharted-companion.git
+git clone https://github.com/Yojithn/uncharted-companion.git
 cd uncharted-companion
 python -m venv venv
 venv\Scripts\activate          # Windows  (macOS/Linux: source venv/bin/activate)
